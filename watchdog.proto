@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "github.com/jchorl/watchdog/types";
+
+package watchdog;
+
+service Watchdog {
+    rpc Ping(Watch) returns (PingResponse) {}
+}
+
+message Watch {
+    string name = 1;
+    enum Frequency {
+        DAILY = 0;
+        WEEKLY = 1;
+    }
+    Frequency frequency = 2;
+    int64 LastSeen = 3;
+}
+
+message PingResponse {}
