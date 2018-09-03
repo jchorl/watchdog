@@ -1,8 +1,9 @@
-package main
+package client
 
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -23,7 +24,7 @@ func Ping(name string, frequency types.Watch_Frequency) error {
 		return err
 	}
 
-	resp, err := http.Post("http://localhost:8080/ping", "application/x-protobuf", bytes.NewReader(data))
+	resp, err := http.Post(fmt.Sprintf("%s/ping", Domain), "application/x-protobuf", bytes.NewReader(data))
 	if err != nil {
 		log.Fatal("Error posting: ", err)
 		return err
@@ -34,8 +35,4 @@ func Ping(name string, frequency types.Watch_Frequency) error {
 	}
 
 	return nil
-}
-
-func main() {
-	Ping("myservice", types.Watch_DAILY)
 }
