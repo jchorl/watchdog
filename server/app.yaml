@@ -5,6 +5,8 @@ handlers:
 - url: /check
   script: _go_app
   login: admin
-
+- url: /remove
+  script: _go_app
+  login: admin
 - url: /.*
   script: _go_app

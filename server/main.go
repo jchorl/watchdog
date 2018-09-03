@@ -19,6 +19,7 @@ import (
 func main() {
 	http.HandleFunc("/ping", pingHandler)
 	http.HandleFunc("/check", checkHandler)
+	http.HandleFunc("/remove", removeHandler)
 	appengine.Main()
 }
 
@@ -74,6 +75,24 @@ func checkHandler(w http.ResponseWriter, r *http.Request) {
 		if (watch.Frequency == types.Watch_DAILY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24).Before(time.Now())) || (watch.Frequency == types.Watch_WEEKLY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24*7).Before(time.Now())) {
 			sendServiceDownEmail(ctx, watch)
 		}
+	}
+}
+
+func removeHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	names := r.URL.Query()["name"]
+	if len(names) == 0 {
+		http.Error(w, "Send the name as a query parameter", http.StatusBadRequest)
+	}
+
+	for _, name := range names {
+		key := datastore.NewKey(ctx, "watch", name, 0, nil)
+		err := datastore.Delete(ctx, key)
+		if err != nil {
+			log.Errorf(ctx, "Unable to delete watch from database: %s", err)
+			http.Error(w, "Unable to delete watch from database", http.StatusInternalServerError)
+		}
+		return
 	}
 }
 
