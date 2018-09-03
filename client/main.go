@@ -37,5 +37,5 @@ func Ping(name string, frequency types.Watch_Frequency) error {
 }
 
 func main() {
-	Ping("myservice", types.Watch_WEEKLY)
+	Ping("myservice", types.Watch_DAILY)
 }

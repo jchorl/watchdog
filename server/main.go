@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -9,12 +11,14 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
+	"google.golang.org/appengine/mail"
 
 	"github.com/jchorl/watchdog/types"
 )
 
 func main() {
 	http.HandleFunc("/ping", pingHandler)
+	http.HandleFunc("/check", checkHandler)
 	appengine.Main()
 }
 
@@ -42,10 +46,57 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 		if _, err := datastore.Put(ctx, key, &watch); err != nil {
 			log.Errorf(ctx, "Unable to store in database: %s", err)
-			http.Error(w, "Unable to store in database", http.StatusBadRequest)
+			http.Error(w, "Unable to store in database", http.StatusInternalServerError)
 			return
 		}
 
 		w.Write([]byte("ok!"))
+	}
+}
+
+func checkHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+
+	q := datastore.NewQuery("watch")
+	for t := q.Run(ctx); ; {
+		var watch types.Watch
+		_, err := t.Next(&watch)
+		if err == datastore.Done {
+			break
+		}
+		if err != nil {
+			sendErrorEmail(ctx, err)
+			log.Errorf(ctx, "Unable to query watches from database: %s", err)
+			http.Error(w, "Unable to query watches from database", http.StatusInternalServerError)
+			return
+		}
+
+		if (watch.Frequency == types.Watch_DAILY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24).Before(time.Now())) || (watch.Frequency == types.Watch_WEEKLY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24*7).Before(time.Now())) {
+			sendServiceDownEmail(ctx, watch)
+		}
+	}
+}
+
+func sendErrorEmail(ctx context.Context, err error) {
+	msg := &mail.Message{
+		Sender:  "Watchdog Notifications <notifications@watchdog.appspotmail.com>",
+		To:      []string{Email},
+		Subject: "Watchdog is down",
+		Body:    fmt.Sprintf("Watchdog is down. Error: %s", err),
+	}
+	if err := mail.Send(ctx, msg); err != nil {
+		log.Errorf(ctx, "Couldn't send email: %s", err)
+	}
+}
+
+func sendServiceDownEmail(ctx context.Context, watch types.Watch) {
+	msg := &mail.Message{
+		Sender:  "Watchdog Notifications <notifications@watchdog.appspotmail.com>",
+		To:      []string{Email},
+		Subject: fmt.Sprintf("%s is down", watch.Name),
+		Body:    fmt.Sprintf("%s is down and was last seen %+v. The frequency is set to %s.", watch.Name, watch.LastSeen, watch.Frequency.String()),
+	}
+	if err := mail.Send(ctx, msg); err != nil {
+		log.Errorf(ctx, "Couldn't send email: %s", err)
 	}
 }

@@ -1,0 +1,7 @@
+cron:
+- description: "check job"
+  url: /check
+  schedule: every 24 hours
+  retry_parameters:
+    min_backoff_seconds: 300
+    max_doublings: 2
