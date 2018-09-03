@@ -11,8 +11,13 @@ import (
 	"github.com/jchorl/watchdog/types"
 )
 
+// Client is a client to talk to watchdog
+type Client struct {
+	Domain string
+}
+
 // Ping pings the server
-func Ping(name string, frequency types.Watch_Frequency) error {
+func (c Client) Ping(name string, frequency types.Watch_Frequency) error {
 	watch := &types.Watch{
 		Name:      name,
 		Frequency: frequency,
@@ -24,7 +29,7 @@ func Ping(name string, frequency types.Watch_Frequency) error {
 		return err
 	}
 
-	resp, err := http.Post(fmt.Sprintf("%s/ping", Domain), "application/x-protobuf", bytes.NewReader(data))
+	resp, err := http.Post(fmt.Sprintf("%s/ping", c.Domain), "application/x-protobuf", bytes.NewReader(data))
 	if err != nil {
 		log.Fatal("Error posting: ", err)
 		return err
