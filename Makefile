@@ -1,4 +1,10 @@
-serve:
+pkg-main:
+	sed -i'' s/"package watchdog"/"package main"/ *.go	
+
+pkg-watchdog:
+	sed -i'' s/"package main"/"package watchdog"/ *.go	
+
+serve: pkg-main
 	docker run -it --rm \
 		-v "$(PWD)":/watchdog \
 		-w /watchdog \
@@ -17,7 +23,7 @@ proto:
 		jchorl/watchdog \
 		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto"
 
-deploy: proto
+deploy: pkg-main proto
 	docker run -it --rm \
 		-v $(PWD):/watchdog \
 		-w /watchdog \
