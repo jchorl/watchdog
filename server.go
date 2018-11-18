@@ -12,8 +12,6 @@ import (
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/log"
 	"google.golang.org/appengine/mail"
-
-	"github.com/jchorl/watchdog/types"
 )
 
 func main() {
@@ -27,7 +25,7 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 
 	if r.Method == "POST" {
-		watch := types.Watch{}
+		watch := Watch{}
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Errorf(ctx, "Unable to read body: %s", err)
@@ -60,7 +58,7 @@ func checkHandler(w http.ResponseWriter, r *http.Request) {
 
 	q := datastore.NewQuery("watch")
 	for t := q.Run(ctx); ; {
-		var watch types.Watch
+		var watch Watch
 		_, err := t.Next(&watch)
 		if err == datastore.Done {
 			break
@@ -72,7 +70,7 @@ func checkHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if (watch.Frequency == types.Watch_DAILY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24).Before(time.Now())) || (watch.Frequency == types.Watch_WEEKLY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24*7).Before(time.Now())) {
+		if (watch.Frequency == Watch_DAILY && time.Unix(watch.LastSeen, 0).Add(time.Hour*25).Before(time.Now())) || (watch.Frequency == Watch_WEEKLY && time.Unix(watch.LastSeen, 0).Add(time.Hour*24*7).Add(time.Hour).Before(time.Now())) {
 			sendServiceDownEmail(ctx, watch)
 		}
 	}
@@ -108,7 +106,7 @@ func sendErrorEmail(ctx context.Context, err error) {
 	}
 }
 
-func sendServiceDownEmail(ctx context.Context, watch types.Watch) {
+func sendServiceDownEmail(ctx context.Context, watch Watch) {
 	msg := &mail.Message{
 		Sender:  "Watchdog Notifications <notifications@watchdog.appspotmail.com>",
 		To:      []string{Email},

@@ -8,7 +8,4 @@ RUN apt-get update && apt-get install -y unzip && \
     go get -u github.com/golang/protobuf/protoc-gen-go
 ENV PATH="/proto/bin:${PATH}"
 
-CMD sh -c "protoc --go_out=plugins=grpc:$GOPATH/src watchdog.proto && \
-go get ./... && \
-cd server && \
-dev_appserver.py app.yaml --host 0.0.0.0 --admin_host 0.0.0.0 --support_datastore_emulator=True"
+CMD sh -c "protoc --go_out=paths=source_relative:. watchdog.proto"

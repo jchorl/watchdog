@@ -1,4 +1,4 @@
-package client
+package main
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/jchorl/watchdog/types"
 )
 
 // Client is a client to talk to watchdog
@@ -17,8 +16,8 @@ type Client struct {
 }
 
 // Ping pings the server
-func (c Client) Ping(name string, frequency types.Watch_Frequency) error {
-	watch := &types.Watch{
+func (c Client) Ping(name string, frequency Watch_Frequency) error {
+	watch := &Watch{
 		Name:      name,
 		Frequency: frequency,
 	}

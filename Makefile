@@ -1,21 +1,27 @@
-default:
+serve:
 	docker run -it --rm \
-		-v $(PWD):/go/src/github.com/jchorl/watchdog \
-		-w /go/src/github.com/jchorl/watchdog \
+		-v "$(PWD)":/watchdog \
+		-w /watchdog \
 		-p 8080:8080 \
 		-p 8000:8000 \
-		jchorl/watchdog
+		jchorl/appengine-go:latest \
+		sh -c "dev_appserver.py --port=8080 --host=0.0.0.0 --admin_host=0.0.0.0 \$$(pwd)"
 
 img:
-	docker build -t jchorl/watchdog .
+	docker build -t jchorl/watchdog -f Dockerfile.proto .
 
-deploy:
+proto:
 	docker run -it --rm \
-		-v $(PWD):/go/src/github.com/jchorl/watchdog \
-		-w /go/src/github.com/jchorl/watchdog \
+		-v $(PWD):/watchdog \
+		-w /watchdog \
 		jchorl/watchdog \
-		sh -c "protoc --go_out=plugins=grpc:\$$GOPATH/src watchdog.proto && \
-		go get ./... && \
-		cd server && \
+		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto"
+
+deploy: proto
+	docker run -it --rm \
+		-v $(PWD):/watchdog \
+		-w /watchdog \
+		jchorl/appengine-go:latest \
+		sh -c "go get ./... && \
 		echo \"gcloud auth login\ngcloud config set project watchdog-215220\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"

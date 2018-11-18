@@ -1,12 +1,8 @@
 syntax = "proto3";
 
-option go_package = "github.com/jchorl/watchdog/types";
+option go_package = "main";
 
 package watchdog;
-
-service Watchdog {
-    rpc Ping(Watch) returns (PingResponse) {}
-}
 
 message Watch {
     string name = 1;
@@ -17,5 +13,3 @@ message Watch {
     Frequency frequency = 2;
     int64 LastSeen = 3;
 }
-
-message PingResponse {}
