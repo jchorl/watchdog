@@ -22,6 +22,7 @@ proto:
 		-w /watchdog \
 		jchorl/watchdog \
 		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto && \
+		protoc -I=. --python_out=. watchdog.proto && \
 		protoc --js_out=import_style=commonjs,binary:. watchdog.proto"
 
 deploy: pkg-main proto
