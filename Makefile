@@ -29,5 +29,5 @@ deploy: pkg-main proto
 		-w /watchdog \
 		jchorl/appengine-go:latest \
 		sh -c "go get ./... && \
-		echo \"gcloud auth login\ngcloud config set project watchdog-215220\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
+		echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"

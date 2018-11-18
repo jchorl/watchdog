@@ -2,13 +2,13 @@ runtime: go111
 
 handlers:
 - url: /check
-  script: _go_app
+  script: auto
   secure: always
   login: admin
 - url: /remove
-  script: _go_app
+  script: auto
   secure: always
   login: admin
 - url: /.*
-  script: _go_app
+  script: auto
   secure: always
