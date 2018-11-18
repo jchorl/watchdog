@@ -21,7 +21,8 @@ proto:
 		-v $(PWD):/watchdog \
 		-w /watchdog \
 		jchorl/watchdog \
-		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto"
+		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto && \
+		protoc --js_out=import_style=commonjs,binary:. watchdog.proto"
 
 deploy: pkg-main proto
 	docker run -it --rm \
