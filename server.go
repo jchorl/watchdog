@@ -96,7 +96,7 @@ func removeHandler(w http.ResponseWriter, r *http.Request) {
 
 func sendErrorEmail(ctx context.Context, err error) {
 	msg := &mail.Message{
-		Sender:  "Watchdog Notifications <notifications@watchdog.appspotmail.com>",
+		Sender:  fmt.Sprintf("Watchdog Notifications <notifications@%s.appspotmail.com>", appengine.AppID(ctx)),
 		To:      []string{Email},
 		Subject: "Watchdog is down",
 		Body:    fmt.Sprintf("Watchdog is down. Error: %s", err),
@@ -108,7 +108,7 @@ func sendErrorEmail(ctx context.Context, err error) {
 
 func sendServiceDownEmail(ctx context.Context, watch Watch) {
 	msg := &mail.Message{
-		Sender:  "Watchdog Notifications <notifications@watchdog.appspotmail.com>",
+		Sender:  fmt.Sprintf("Watchdog Notifications <notifications@%s.appspotmail.com>", appengine.AppID(ctx)),
 		To:      []string{Email},
 		Subject: fmt.Sprintf("%s is down", watch.Name),
 		Body:    fmt.Sprintf("%s is down and was last seen %+v. The frequency is set to %s.", watch.Name, watch.LastSeen, watch.Frequency.String()),

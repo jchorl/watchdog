@@ -25,11 +25,11 @@ proto:
 		protoc -I=. --python_out=. watchdog.proto && \
 		protoc --js_out=import_style=commonjs,binary:. watchdog.proto"
 
-deploy: pkg-main proto
+deploy: proto pkg-main
 	docker run -it --rm \
 		-v $(PWD):/watchdog \
 		-w /watchdog \
 		jchorl/appengine-go:latest \
-		sh -c "go get ./... && \
-		echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
+		bash
+		sh -c "echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"
