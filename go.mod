@@ -5,3 +5,5 @@ require (
 	google.golang.org/appengine v1.3.0
 	google.golang.org/grpc v1.16.0
 )
+
+go 1.13
