@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -11,16 +12,18 @@ import (
 	"cloud.google.com/go/datastore"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"google.golang.org/api/iterator"
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/mail"
 )
 
 func main() {
+	flag.Parse()
+
 	http.HandleFunc("/ping", pingHandler)
 	http.HandleFunc("/check", checkHandler)
 	http.HandleFunc("/remove", removeHandler)
-	glog.Error(http.ListenAndServe(os.Getenv("PORT"), nil))
+	glog.Error(http.ListenAndServe(":"+os.Getenv("PORT"), nil))
 }
 
 func pingHandler(w http.ResponseWriter, r *http.Request) {
@@ -93,29 +96,34 @@ func removeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO figure out email
 func sendErrorEmail(ctx context.Context, err error) {
-	msg := &mail.Message{
-		Sender:  fmt.Sprintf("Watchdog Notifications <notifications@%s.appspotmail.com>", appengine.AppID(ctx)),
-		To:      []string{Email},
-		Subject: "Watchdog is down",
-		Body:    fmt.Sprintf("Watchdog is down. Error: %s", err),
-	}
-	if err := mail.Send(ctx, msg); err != nil {
+	subject := "Watchdog is down"
+	body := fmt.Sprintf("Watchdog is down. Error: %s", err)
+	if err := sendEmail(subject, body); err != nil {
 		glog.Errorf("sending email: %s", err)
 	}
 }
 
 func sendServiceDownEmail(ctx context.Context, watch Watch) {
-	msg := &mail.Message{
-		Sender:  fmt.Sprintf("Watchdog Notifications <notifications@%s.appspotmail.com>", appengine.AppID(ctx)),
-		To:      []string{Email},
-		Subject: fmt.Sprintf("%s is down", watch.Name),
-		Body:    fmt.Sprintf("%s is down and was last seen %+v. The frequency is set to %s.", watch.Name, watch.LastSeen, watch.Frequency.String()),
-	}
-	if err := mail.Send(ctx, msg); err != nil {
+	subject := fmt.Sprintf("%s is down", watch.Name)
+	body := fmt.Sprintf("%s is down and was last seen %+v. The frequency is set to %s.", watch.Name, watch.LastSeen, watch.Frequency.String())
+	if err := sendEmail(subject, body); err != nil {
 		glog.Errorf("sending email: %s", err)
 	}
+}
+
+func sendEmail(subject, body string) error {
+	from := mail.NewEmail("Watchdog Notifications", "alerts@watchdog.joshchorlton.com")
+	to := mail.NewEmail("", Email)
+	message := mail.NewSingleEmail(from, subject, to, body, body)
+	client := sendgrid.NewSendClient(SendGridAPIKey)
+	response, err := client.Send(message)
+	if err != nil {
+		return err
+	}
+
+	glog.Infof("sent email status_code=%v body=%v", response.StatusCode, response.Body)
+	return nil
 }
 
 func newDBClient(ctx context.Context) *datastore.Client {

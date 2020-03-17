@@ -29,7 +29,7 @@ deploy: proto pkg-main
 	docker run -it --rm \
 		-v $(PWD):/watchdog \
 		-w /watchdog \
-		jchorl/appengine-go:latest \
-		bash
+		-v watchdogcreds:/root/.config/gcloud/ \
+		gcr.io/google.com/cloudsdktool/cloud-sdk:284.0.0 \
 		sh -c "echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"

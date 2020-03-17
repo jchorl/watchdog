@@ -4,11 +4,9 @@ handlers:
 - url: /check
   script: auto
   secure: always
-  login: admin
 - url: /remove
   script: auto
   secure: always
-  login: admin
 - url: /.*
   script: auto
   secure: always

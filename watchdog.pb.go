@@ -18,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type Watch_Frequency int32
 
@@ -105,7 +105,9 @@ func init() {
 	proto.RegisterType((*Watch)(nil), "watchdog.Watch")
 }
 
-func init() { proto.RegisterFile("watchdog.proto", fileDescriptor_554efde3f2d36ab7) }
+func init() {
+	proto.RegisterFile("watchdog.proto", fileDescriptor_554efde3f2d36ab7)
+}
 
 var fileDescriptor_554efde3f2d36ab7 = []byte{
 	// 181 bytes of a gzipped FileDescriptorProto
