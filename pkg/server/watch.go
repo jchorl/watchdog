@@ -21,6 +21,7 @@ func (x *serializedWatch) Load(ps []datastore.Property) error {
 		return err
 	}
 
+	x.Proto = &pb.Watch{}
 	if err := proto.Unmarshal(x.Serialized, x.Proto); err != nil {
 		return fmt.Errorf("unmarshaling proto: %w", err)
 	}
