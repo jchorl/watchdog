@@ -45,7 +45,9 @@ func New(
 }
 
 func (s *Server) handlePing(w http.ResponseWriter, r *http.Request) {
-	watch := serializedWatch{}
+	watch := serializedWatch{
+		Proto: &pb.Watch{},
+	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		glog.Errorf("reading body: %s", err)

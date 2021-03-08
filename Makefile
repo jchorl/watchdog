@@ -20,4 +20,7 @@ deploy:
 		sh -c "echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"
 
+cmd-docker:
+	docker build -t jchorl/wdping -f dockerfiles/wdping.Dockerfile .
+
 .PHONY: proto
