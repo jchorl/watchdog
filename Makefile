@@ -1,35 +1,23 @@
-pkg-main:
-	sed -i'' s/"package watchdog"/"package main"/ *.go	
-
-pkg-watchdog:
-	sed -i'' s/"package main"/"package watchdog"/ *.go	
-
-serve: pkg-main
-	docker run -it --rm \
-		-v "$(PWD)":/watchdog \
-		-w /watchdog \
-		-p 8080:8080 \
-		-p 8000:8000 \
-		jchorl/appengine-go:latest \
-		sh -c "dev_appserver.py --port=8080 --host=0.0.0.0 --admin_host=0.0.0.0 \$$(pwd)"
-
-img:
-	docker build -t jchorl/watchdog -f Dockerfile.proto .
+UID=$(shell id -u)
+GID=$(shell id -g)
 
 proto:
 	docker run -it --rm \
-		-v $(PWD):/watchdog \
-		-w /watchdog \
-		jchorl/watchdog \
-		sh -c "protoc --go_out=paths=source_relative:. watchdog.proto && \
-		protoc -I=. --python_out=. watchdog.proto && \
-		protoc --js_out=import_style=commonjs,binary:. watchdog.proto"
+		-u "$(UID):$(GID)" \
+		-v "$(PWD)"/proto:/watchdog/github.com/jchorl/watchdog/proto \
+		-w /watchdog/github.com/jchorl/watchdog/proto \
+		namely/protoc-all \
+		-f watchdog.proto \
+		-l go \
+		-o /watchdog
 
-deploy: proto pkg-main
+deploy:
 	docker run -it --rm \
 		-v $(PWD):/watchdog \
 		-w /watchdog \
 		-v watchdogcreds:/root/.config/gcloud/ \
-		gcr.io/google.com/cloudsdktool/cloud-sdk:284.0.0 \
+		gcr.io/google.com/cloudsdktool/cloud-sdk:330.0.0 \
 		sh -c "echo \"gcloud auth login\ngcloud config set project watchdog-222905\ngcloud app deploy\ngcloud app deploy cron.yaml\" && \
 		bash"
+
+.PHONY: proto
